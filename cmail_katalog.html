@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cmail — Katalog</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: #f8fafc;
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 24px 20px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0f172a, #1e3a5f);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 32px rgba(15,23,42,0.2);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-title h1 {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .header-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 3px;
+  }
+  .import-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .import-btn:hover { background: rgba(255,255,255,0.22); }
+
+  /* Stats */
+  .stats-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-val { font-size: 20px; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* Search */
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+  .search-input {
+    width: 100%;
+    padding: 12px 40px 12px 44px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: #1e3a5f; }
+  .search-clear {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    border: none; background: none; cursor: pointer; font-size: 20px; color: #94a3b8; line-height: 1;
+    display: none;
+  }
+
+  /* Filters */
+  .filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn.active {
+    border-color: #1e3a5f;
+    background: #1e3a5f;
+    color: #fff;
+  }
+
+  /* Result count */
+  .result-info { font-size: 12px; color: #94a3b8; margin-bottom: 10px; padding-left: 2px; }
+  .result-info strong { color: #1e3a5f; }
+
+  /* Table */
+  .table-wrap { background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #0f172a; }
+  thead th {
+    padding: 13px 18px;
+    text-align: left;
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th:hover { background: #1e3a5f; }
+  .sort-arrow { margin-left: 4px; opacity: 0.35; font-size: 11px; }
+  .sort-arrow.active { opacity: 1; }
+  tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+  tbody tr:hover { background: #f0f7ff !important; }
+  tbody tr.vakant-row { background: #fafafa; }
+  td { padding: 11px 18px; font-size: 14px; }
+  td.num-col { font-family: 'Courier New', monospace; font-size: 13px; color: #1e3a5f; font-weight: 700; width: 140px; }
+  td.name-col { color: #1e293b; }
+  td.name-col.vakant { color: #94a3b8; font-style: italic; }
+  td.type-col { width: 120px; }
+  .badge {
+    display: inline-block; padding: 2px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+  }
+  .badge-person { background: #dcfce7; color: #15803d; }
+  .badge-vakant { background: #fee2e2; color: #dc2626; }
+  .badge-roll   { background: #dbeafe; color: #1d4ed8; }
+  mark { background: #fde68a; border-radius: 2px; padding: 0 1px; }
+  .no-results { text-align: center; padding: 48px; color: #94a3b8; font-size: 15px; }
+  .no-results .icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* Drag overlay */
+  #drag-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(30,58,95,0.85);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #drag-overlay.active { display: flex; }
+  #drag-overlay .drop-icon { font-size: 56px; }
+  #drag-overlay p { color: #fff; font-size: 20px; font-weight: 700; }
+
+  /* Toast */
+  #toast {
+    display: none;
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 12px 20px; border-radius: 10px;
+    color: #fff; font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<div id="drag-overlay">
+  <div class="drop-icon">📂</div>
+  <p>Släpp filen här för att importera</p>
+</div>
+
+<div id="toast"></div>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">
+        <span style="font-size:24px">📋</span>
+        <h1>Cmail — Katalog</h1>
+      </div>
+      <div class="header-meta" id="header-meta"></div>
+    </div>
+    <button class="import-btn" onclick="document.getElementById('file-input').click()">
+      ⬆ Importera ny fil
+    </button>
+    <input id="file-input" type="file" accept=".json,.csv,.txt" style="display:none" onchange="onFileChange(event)">
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val" id="stat-total" style="color:#94a3b8">0</div><div class="stat-label">Totalt</div></div>
+    <div class="stat"><div class="stat-val" id="stat-person" style="color:#4ade80">0</div><div class="stat-label">Personer</div></div>
+    <div class="stat"><div class="stat-val" id="stat-vakant" style="color:#f87171">0</div><div class="stat-label">Vakanta</div></div>
+    <div class="stat"><div class="stat-val" id="stat-roll" style="color:#60a5fa">0</div><div class="stat-label">Roller/System</div></div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input class="search-input" id="search" type="text" placeholder="Sök på namn eller nummer…" oninput="onSearch()">
+  <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="setFilter('alla', this)">Alla</button>
+  <button class="filter-btn" onclick="setFilter('person', this)">👤 Personer</button>
+  <button class="filter-btn" onclick="setFilter('vakant', this)">⚪ Vakant</button>
+  <button class="filter-btn" onclick="setFilter('roll', this)">🏷 Roller/System</button>
+</div>
+
+<div class="result-info" id="result-info"></div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="toggleSort('num')" style="width:140px">
+          Nummer <span class="sort-arrow active" id="arrow-num">↑</span>
+        </th>
+        <th onclick="toggleSort('name')">
+          Namn <span class="sort-arrow" id="arrow-name">↕</span>
+        </th>
+        <th style="width:120px">Typ</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="no-results" id="no-results" style="display:none">
+    <div class="icon">🔎</div>
+    Inga träffar
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────
+const RAW_DEFAULT = `-, Blank
+1000000, Mikael Persson
+1000001, Philip Allgoth
+1001000, IT-chef
+1001001, Magnus Tegnvallius
+1100000, Victoria Galbe
+1100001, Pärnilla Ahnfors
+1100002, Pärnilla Ahnfors
+1100003, Johan Andreasson
+1100004, Vakant
+1100005, Vakant (Roger Gustafsson)
+1100006, Vakant (Anders Janerup)
+1100007, Ulf Blyrup
+1100008, Helle Benediktsson
+1100009, Omsorgscontroller
+1100010, Monika Laszlo
+1100011, Madeleine Gustafson
+1100012, Vakant (Anton Repetto)
+1100013, Magnus Lindvall
+1100015, Katarina Ahl
+1100016, Eva Kjellman
+1100017, Emilia Lindhult
+1100018, Emelie Asplund
+1100020, Lars Baeck
+1100021, Ellinor Saethre
+1100022, Systemförvaltare EK
+1100023, Maria Andersson
+1100024, Helen Axelsson
+1100025, Emma Salde Reuter
+1101000, Magnus Lindén
+1101001, Hugo Svensson
+1101002, Vakant (Roger Gustafsson)
+1101003, Vakant (Anders Janerup)
+1101004, Vakant (Anders Adrielsson)
+1101005, Advania
+1101006, Mats Ohlsson
+1101007, Vakant
+1101008, Vakant
+1101009, Vakant
+1101010, Emma Pettersson
+1101011, Vakant (Tobias Hallgren)
+1101012, Vakant (Måns Ahlgren)
+1101013, Vakant
+1101014, Vakant
+1101015, Vakant
+1101016, Max Hansson Wernicke
+1300000, Vakant (Elisabeth Nordlund)
+1300001, Vakant (Mats Svedberg)
+1300002, Malin Kretz
+1300003, Louise von Seth
+1300004, Janni Björnberg
+1300005, Mathias Lindgren
+1300007, Jörgen Eriksson
+1300008, Magnus Tegsved
+1300009, Tele2 Politik
+1300010, Pia Almström
+1300011, Olof Westerberg
+1300012, Marie Göransson
+1300014, Oliver Särnehed
+1300015, Carl Digital
+1300016, Felicia Törnberg
+1300017, Pernilla Skånstad
+1300018, Ebba Hammer
+1300019, Charlotte Malmborg
+1300020, Lidia Ishermood (Jenny Ruppel)
+1300021, Louise von Seth
+1300022, Annie Collins
+1300023, Johanna Aronsson
+1300200, Vakant
+1300300, Vakant (Daniel Andersson)
+130100, Vakant
+1301000, Camilla Holmberg
+1301001, Gabriel Kvernes
+1301002, Stina Hasselblad
+1301003, Elin Ronda
+1301004, Tatiana Luchi Barazzuol
+1301005, Lidia Isherwood
+1301006, Caroline Malmros
+1301007, Lidia Ishewood (Jenny Ruppel)
+1301008, Caroline Ros
+1302000, Björn Andersson
+1400000, Elin Willerud
+1400001, Malin Ferbas
+1400002, Susanne Söderstjerna
+1400003, Vakant (Natasa Nikolic)
+1400004, Lennart Jönsson
+1400005, Jenny Lundgren
+1400006, Pär-Ola Nilsson
+1400007, Vakant (Sofia Floreby)
+1400008, Folksam
+1400009, Isa Löfvendahl
+1400010, Vakant (Cecilia Adolfsson)
+1400011, Pär_Ola (Fd. Henrik)
+1400012, Vakant
+1400013, Charlotta Kjellin
+1400014, Pelle Nilsson
+1400015, Beatrice Wallersköld
+1400016, Vakant ny
+1400017, Vakant ny
+1400018, Vakant ny
+1400019, Vakant ny
+1400020, Vakant ny
+1500000, Lidia Isherwood
+1500001, Vakant (Maria Iwerbo)
+1500002, Evelina Erlandsson
+1500003, Elina Karlsson
+1500004, Elisabeth Axelsson
+1500005, Jenny Bjarnmark
+1500006, Monika Carnehult
+1500007, Markus Hegnelius
+1500008, Ebba Haggren
+1500009, Sara Linné
+1500010, Anneli Andersson
+1500011, Vakant ny
+1500012, Vakant ny
+1600000, Sofia Öreberg
+1600001, Vakant (Ann Persson)
+1600002, Patrik Lund
+1600003, Eric Arnehed
+1600004, Joacim Dahlberg/Emelie Alsén/M
+1600005, Isabelle Sandberg
+1600006, Caroline Kroeker
+1600007, Pernilla Andersson
+1600008, Dennis Brattefelt
+1600009, Marie Pettersson
+1600010, Vakant ny
+1600011, Vakant ny
+2000000, Lina Rosenstråle
+2100000, Fastighet
+2100001, Vakant (Göran Sturesson)
+2100002, Claes Magnusson (Mattias Averu)
+2100003, Håkan Strandberg
+2100004, Mikael Elofsson
+2100005, Niklas Norberg
+2100006, Torbjörn Mårtensson
+2100007, Ola Severinsson
+2100008, Fastighet
+2100009, Fastighet Robins
+2100010, Johan Andreasson
+2100011, Mikael Ahlberg
+2100012, Fastighet
+2100013, Oskar Åkesson
+2200000, VA-chef Jörgen Lindberg
+2200001, Vakant (Jörgen Olsson)
+2200002, Jörgen Lindberg
+2200003, Vakant
+2200004, Madelaine Hellborg Lapajne
+2200005, Stefan Persson
+2200006, Johannes Katz (Jörgen Olsson)
+2200007, Vakant (Emma Axbacke)
+2200008, Carl-Henrik Bergmanis
+2200009, Kurt Jensen (Jörgen Olsson)
+2200010, Vakant
+2200011, Patrik Svanberg
+2200012, Vakant
+2200013, Madeleine Hjertstrand Persson
+2200014, Vakant
+2200015, Vakant
+2200016, Vakant
+2300000, Teknisk chef
+2300002, Håkan Nilsson
+2300003, Vakant
+2300004, Emmely Samuelsson Skogberg
+2400000, Ola Åkesson
+2400001, Madeleine Kristersson
+2400002, Niclas Jensen
+2400003, Karsten Persson (Camilla Persson)
+2400005, Camilla Persson
+2400006, Sten Andersson
+2400007, Magnus Celander
+2400008, Göran Persson
+2400009, Martin Nilsson
+2400010, Thomas Lillienberg
+2400011, Daniel Björnfors
+2400012, Göran Jönsson
+2400013, Anders Emanuelsson
+2400014, Dennys Thornqvist
+2400015, Claes Johnsson
+2400017, Fabian Jönsson
+2400018, Anders Larsson (Thomas Landen)
+2400019, Vakant
+240002, Magnus Persson
+2400020, Patrik Nilsson
+2400021, Magnus Persson
+2400022, Håkan Gehander
+2400023, Vakant
+2400024, Mikael Ahlgren
+2400025, Olafur Bjarnason
+2400026, Vakant
+3000000, Katarina Finyak
+3000001, Vakant ny
+3000002, Vakant ny
+3000003, Vakant ny
+3000004, Vakant ny
+3000005, Vakant ny
+3000006, Vakant ny
+3000007, Vakant ny
+3000008, Vakant ny
+3000009, Vakant ny
+3000010, Marie Ärvström
+3000100, Samhällsbyggnad
+3000101, Anders Svensson
+3000103, Vakant (Annie Sundberg)
+3000105, Vakant (Madeleine Liefke)
+3000106, Vakant
+3000107, Elisabeth Henriksson
+3000109, Vakant (Gyula Pinter)
+3100000, Miljöchef
+3100001, Bygg & Miljö
+3100002, Kerstin Landen
+3100003, Vakant (David Bernstrup)
+3100004, Vakant (David Bernstrup)
+3100005, Vakant (David Bernstrup)
+3100006, Vakant
+3100007, Vakant (Anneli Tegnér Göransson)
+3100008, Vakant ny
+3100009, Vakant ny
+3100010, Vakant ny
+3100011, Vakant ny
+3100012, Vakant ny
+3100013, Vakant ny
+3100014, Vakant ny
+3100015, Vakant ny
+3200000, Vakant (Fredrik Palm)
+3300100, Vakant (David Bernstrup)
+4000000, Johan Holmqvist
+4000001, Christina Fåhraeus
+4000002, Jimmie Brander
+4001000, Fredrik Christensson
+4001001, Daniel Hellgren
+4001002, Christina Hedvall
+4001003, Louise Säfström
+4001004, Julia Pripp
+4001005, Lenka Jandova
+4001006, Marie-Therese Lundh
+4002000, Vakant (Jimmie Brander)
+4002001, Vakant
+4003000, Camilla Fajerson
+4005000, Camilla Micha
+4005001, Andreas Isén
+4005002, Vakant (Camilla Bohman)
+4005004, Vakant
+4005005, Renee Horndahl-And
+4005006, Camilla Micha
+4005007, Vakant
+4005008, Linda Ekstrand
+4005009, Vakant
+4005010, Henny Lind
+4005012, Vakant
+4005013, Annika Carlsson
+4100000, Elin Ahx
+4101000, Christina Olsson
+4102000, Jessica Algback
+4102001, Lars Andersson
+4102003, Lina Haglund (Therese Lundh)
+4102004, Andreas Isén
+4102012, Helen Didricksson
+4102016, Vakant (Cina Hagström Persson)
+4102017, Christina Uddenäs
+4103000, Lina Jägestedt
+4103001, Pernilla Tegnér
+4103002, Eva Haggren
+4103009, Vakant (fd. Carina Gadd)
+4104000, Christina Sjöström
+4104004, Catarina Gustafsson
+4104007, Susanne Larsson
+4105000, Catarina Gustafsson
+4105010, Vakant (Elin Broman)
+4106000, Catarina Gustafsson
+4106002, Karina Lindelöf
+4106004, Eva Haggren
+4106005, Frida Goldstrand
+4106007, Eva-Karin Olsson
+4106010, Vakant (Douglas Hill)
+4107001, Lolita Petersson
+4107009, Susanne Wallin
+4107010, Ines Andersson
+4107011, Darinka Cadjo
+4107018, Marianne Olsson
+4107019, Åsa Kristensson
+4109000, Pernilla Tegnér
+4110000, Skönadal förskola
+4110001, Vakant (Migena Huqi)
+4200000, Johan Holmqvist
+4200004, Charlotte Nilsson Lilius
+4201000, Peter Westergård
+4201002, Jessica Lindholm
+4201003, Richard Franzen
+4201004, Ninni Malmstedt
+4201007, Birgit Kristensson Peluso Gagl
+4202000, Charlotte Nilsson Lilius
+4202001, Åsa Christensson
+4202006, Carolin Lindberg
+4202009, Margaretha Andersson
+4202010, Håkan Ekström
+4202011, Malin Kastrup
+4202012, Stefan Nilsson
+4203000, Thomas Eskilsson
+4203001, Therese Malmgren
+4203004, Elisabet Ivarsson
+4203006, Maria Libäck
+4203007, Vakant (Martina Lundbeck)
+4203012, Idrott och hälsa
+4203013, Katharina Elfros
+4203014, Therese Malmgren
+4203019, Korsbacka exp.
+4204000, Josefin Lindén (via Maria Bjerke)
+4204001, Daniella Breber
+4204002, Maria Bjerke
+4204003, Vakant (Mats Christensson)
+4204004, Vakant (Carina Lilliehöök)
+4204005, Kristina Nilsson
+4204006, Caroline Jönsson
+4204007, Henrik Sundberg
+4204008, Jessica Linde
+4204009, Hans Andersson
+4204010, Vakant (Johanna Larsson)
+4204011, Emil Nilsson
+4204012, Linda Schultz
+4204013, Emma Willman
+4204014, Vakant (Kenneth Henriksson)
+4204016, Jonas Westerberg
+4204017, Maria Stagnell
+4204018, Karin Horneij
+4204019, Vakant (Michaela Jung)
+4204020, Vakant (Sofia Kroksmark)
+4204021, Maria Johannisson
+4204024, Vakant (Maria Jepson)
+4204025, Lotta Egard Zander
+4204026, Kristin Lönnblad
+4204029, Ulrika Thoren
+4204030, Ted Egard
+4204034, Vakant (Annika Hunger)
+4204037, Vakant (Evelina Sandström)
+4204040, Vakant (Jesper Olsson)
+4204042, Marina Strömsten
+4204043, Daniel Kindblom
+4205000, Charlotta Nilsson Lilius
+4205001, Nina Alestam
+4205002, Sofie Andersson
+4205003, Liselotte Forsberg
+4205005, Gabriella Persson
+4206000, Cecilia Jagenheim Mattsson
+4206001, Vakant (Eva Ohlin)
+4206002, Charlotte Andersson
+4206004, Vakant (Katarina Wahlberg)
+4206013, Therése Jägerman
+4206015, Vakant (Linda Bjerring)
+4206017, Thomas Martinsson
+4206018, Vakant (Åsa Björklund)
+4206019, Stefan Lundqvist
+4206026, Christian Gullwi
+4206029, Sofia Gullander
+4206030, Carola Persson
+4207000, Sandra Kristiansson
+4207001, Anette Kärne
+4207002, Hans Holmberg
+4207003, Skönadalskolan (Jessica Taxén)
+4207004, Irene Holmquist
+4207005, Vakant (Ria Wedin Brunet)
+4207006, Per Norgaard
+4207007, Anna Månsson
+4207008, Caroline Broholm
+4207009, Katja Lindström
+4207010, Rebecca Thomsen
+4207011, Sara Leonardsson
+4207012, Torbjörn Åkerman
+4207013, Karolin Wagner
+4207015, Emma Sjögren
+4207016, Eva Johansson
+4207017, Agneta Lindvall
+4207018, Marie Backman Hedin
+4207019, Skönadalskolan (Vakant Mattias)
+4207020, Sandra Kristiansson
+420800, Anders Nilsson
+4208000, Joakim Persson
+4208001, Susanne Gersbo
+4208002, Anette Sahlin
+4208007, Anders Nilsson
+4208008, Vakant (Sunna Waldemarsson)
+4208009, Therese Åberg
+4208010, Jens Lindström
+4208011, Ola Nilsson
+4208012, Tim Strömberg
+4208013, Martin Berntsson
+4208014, Patrik Tornberg
+4208015, Bengt Karlsson
+4208016, Susanne Edström
+4208018, Maria Svensson
+4208019, Joel Linnér
+4208020, Peter Rambson
+4208025, Jonas Ahlberg
+4208028, Anette Jivenius
+4209000, Jill Nord
+4209011, Vakant (Ulf Bengtsson)
+4209012, Katrin Hallberg
+4209013, Charlotte Johansson
+4209014, Cecilia Eklund
+4209015, Yvonne Ivarsson
+4209016, Vakant (Zara Hägerklint)
+4210000, Anneli Roth
+4210005, Carola Bokelid
+4300000, Anneli Nilsson
+4300002, Anders Lindvall
+4300003, Fredrik Berndt
+4300004, Vakant (Pia Lord)
+4300020, Daniel Hellgren
+4301000, Jonas Jonsson
+4301001, Maria Troedsson
+4301002, Catarina Kjellander
+4301003, Ann Kristoffersson
+4302000, Marie Ewéo
+4302001, Vakant (Christine Hallden)
+4302002, Vakant (Carina Sandelin)
+4302003, Faiza Ul-Hassan
+4302004, Vakant (Emma Lundgren)
+4302005, Vakant (Roger Alfh)
+4302006, Annika Larsson
+4303004, Vakant (Pia Lord)
+4400000, Per Arvedson
+4400001, Johnny Eneroth
+4400002, Magnus Lindner
+4400003, Kent Persson
+4400100, Lena Nilsson
+4401000, Peter Wilgotsson
+4401001, Vakant (Peter Ljung)
+4401002, Frida Bokor
+4402000, Bibliotekschef
+4402001, Elke Brinkeback
+4402002, Åsa Liliefeldt
+4402003, Elisabet Nordlander
+4402004, Charlotte Sager
+4402005, Katja Lehmann
+4402006, Frida Lindkvist
+4402007, Vakant (Åsa Strömqvist)
+4402008, Peter Eriksson
+4402009, Linda Harrisson
+4402010, Sebastian Harrison
+4402013, Maria Bolmehag
+4402015, Lena Nilsson Berg
+4402016, Linda Harrisson
+4402018, Malin Larsson
+4402019, Vakant (Sanna Fries)
+4402020, Lena Arborelius
+4403000, Nina Lindelöf
+4403002, Andreas Nilsson
+4403003, Tony Kvant
+4403004, Maricio Johansson
+4403007, Camilla Berg
+4403009, Robin Radic
+4403011, Kevin Odismann
+4403012, Patrik Magnusson
+4403015, Rasmus Andersson
+4405000, Idrottsanläggning
+4405001, Tony Persson
+5000000, Vakant (Ann-Louise Christensen)
+5000003, Annika Stråth
+5000005, Anna Jungquist
+5000006, Vakant (Eva Sjöstedt)
+5000007, Ellinor Hammarsköld
+5000008, Caroline Anderberg
+5200000, Vakant (Ann-Louise Christensen)
+5200001, Mats Runsten
+5200002, Ulrika Johansson
+5200003, Leila Misirli (Lars R)
+5200004, Louise Möller-Baksic
+5201000, Vakant (tidigare Marie Wänglund)
+5201002, Jonas Niklasson
+5201003, Yvonne Eriksson
+5201004, Aron Alpner
+5201005, Pia Johansson
+5201006, Åsa Wiener
+5201007, Vakant (Wiveca Nilsson Wiman)
+5201008, Ann-Christin Jensen
+5201009, Jon Rosenlöf
+5201017, Amy Ransmark
+5201020, Cecilia Ågren
+5201021, Erika Nielsen
+5201022, Carolina Skog
+5201030, Ann-Louise Christensen
+5201036, Vakant (Ann-Kristin Willman)
+5201042, Vakant (Eva B)
+5201046, Vakant (Alexander Vikner)
+5201050, Vakant (Eva B)
+5201051, Jessica Olsson
+5201052, Anette Svensson
+5201056, Jennie Klang
+5201057, Daniel Ahlström
+5201058, Caroline Valquist
+5201059, Lillian Nilsson
+5201063, Vakant (Anette Boman Skoug)
+5201065, Josef Fors
+5201066, Thomas Strand
+5202000, Vakant (Sandra Bergin Lundgren)
+5202001, Karin Gustavsson
+5203000, Pia Jönsson
+5203001, Emilia Leander
+5203002, Mikael Törnqvist
+5203003, Louise Flodman
+5203004, Elna Gunnarsdottir
+5203011, Vakant (Jytte Herold)
+5204000, Jennie Klang
+5204001, Sofia Mogvall
+5204002, Vakant (Malin Edring)
+5205000, Charlotta Everlöv
+5205001, Vakant (Maria Lemke)
+5205002, Elin Håkansson
+5206003, Monica Persson
+5206004, Linnea Ljung
+5206005, Ellen Walle
+5206006, Maria Fransson
+5206007, Eva-Marie Landin
+5206008, Carlos Persson
+5206009, Maria Östgård
+5206011, Vakant (Roland Fristedt)
+5206012, Jane Meisner
+5206013, Monika Jeppsson
+5206014, Therese Elm
+5206016, Vakant (Anne Månsson)
+5207000, Johannes Bragazzi
+5207001, Martina Nilsson
+5207003, Timo Rissanen
+5207011, Vakant (Irene Jensen)
+5207014, Vakant (Ingrid Lindberg)
+5207017, Rose-Marie Olsson Kristersson
+5207020, Hanna Westesson
+5208000, Vakant (Johannes B)
+5209000, Vakant (Ebba Lindström)
+5209001, Vakant (Pia Linden)
+5209002, Malin Rahm
+5209003, Vakant (Denise Walther)
+5209005, Kent Nilsson
+5209006, Ingela Björk
+5209007, Per Nilsson
+5210000, Möllebacken
+5210003, Monika Lindahl
+521003, Vakant
+5600000, Paulina Hallgren
+5600001, Vakant (Lii Alsfjärd)
+5600003, Vakant (Anna Bondesson)
+5600005, Vakant (Pernilla Nordqvist)
+5600010, Madelen Sandberg
+5601000, Peter Jakobsen
+5601001, Vakant (Johan Nilsson)
+5601002, Alexander Alm
+5601007, Maria Living
+5602000, Suzana Nordlinder
+5602001, Vakant (Ingrid Henriksson)
+5602002, Vakant (Nazli Mornani)
+5602003, Vakant (Sara Svensson)
+5602004, Kim Boye
+5602005, Vakant (Liz Jarlshed)
+5602006, Diana Imeri
+5602007, Vakant (Katarina Timmermand)
+5602008, Karin Bengtsson
+5602010, Sofia Loeb
+5602013, Vakant (Catharina Andersson)
+5603000, Vakant (Damir Music)
+5603004, Anna Andersson
+5603005, Birgitta Lundberg
+5603006, Oliver Emberstedt
+5604000, Helen Mårtensson
+5604001, Vakant (Josefine Pernvi)
+5604003, My Olsson Sterzel
+5604004, Ulla Prahl
+5604006, Vakant (Sofia Lynhagen)
+5604007, Vakant (Susanne Nilsson)
+5604008, Britt-Marie Nyström
+5604009, Jennifer Broberg
+5605002, Rickard Holstein
+5605003, Vakant (Pia Wikhög Jönsson)
+5605004, Christian Hansson
+5605006, Nina Gunnarsson
+5605007, Maria Living
+5605008, Carola Vijk
+5605009, Henrik Fält
+5606000, Louise Pallon
+5700000, Anneli Nilsson
+5700001, Åsa Dahlström Ringby
+5700002, Vakant (Mirjam Wiking)
+5700003, Susanne Albihn
+5700004, Vakant (Katarina Beermann)
+5700005, Vakant (Denny Saks)
+5700006, Emma Jonasson
+5700007, Vakant (Nathalie Lindqvist)
+5700008, Ellen Dalentoft
+5701000, Carolina Söderek
+5900000, Jens Modéer
+5900002, Kristina Öst (Sara Simos)
+5900003, Katharina Stenéus
+5900004, Marcus Paradis
+5900005, Tina Waldt
+5900007, Johan Andersson
+5900008, Malin Persson
+5900009, Åsa Nilsson
+5900010, Markus Linden
+5900011, Cristoffer Cedergren
+5900012, Markus Johansson
+5900013, Petra Olsson
+5900014, Camilla Lund
+5900015, Camilla Engdahl
+5900016, Richard Blomquist
+5900018, Olja Bukarica
+5900019, Vakant (Emelie Asplund)
+5900020, Marcus Paradis
+5900021, Cristoffer Cedergren
+5900022, Johan Andersson
+5900023, Susann Jonasson
+5900024, Caroline Anderberg
+5900025, Olja Bukarica
+5900026, Tom Nilsson
+5900027, Ingalill Knudsen
+8400000, Anders Hallström
+8400001, IT
+ANL, 
+BEM, Sekretess Bemanning
+BEMSEKR, Sekretess Bemanning
+EKSEKR, Ekonomi sekretess
+EVSJ18, 
+FKZ45L, Bil
+GKZ66K, GKZ66K Bil
+HANDIK., Sekretess
+HOTEL, 
+IFO, Sekretess
+IT_MP, Övergripande IT
+KKHEA, 
+KNCAK, 
+KNJOP, 
+LCCAS, 
+LOL, Advania utan träff
+LÄR1, Sekretess skolskjuts
+LÄR2, IKE externt gymnasium
+MAAR14, 
+MKO, Vakant
+MNCHK, Används ej
+S1, Sekretess
+SNAJJ, 
+TC SMS, Chefer verksamheter med TC SMS
+TNINA, `;
+
+// ── STATE ────────────────────────────────────────────────────────────
+let entries = parseEntries(RAW_DEFAULT);
+let currentFilter = 'alla';
+let sortField = 'num';
+let sortAsc = true;
+let searchQuery = '';
+let importedAt = null;
+let importedFile = null;
+
+const STORAGE_KEY = 'cmail-data-v1';
+const STORAGE_META_KEY = 'cmail-meta-v1';
+
+// ── PARSE ────────────────────────────────────────────────────────────
+function parseEntries(raw) {
+  return raw.trim().split('\n').map(line => {
+    const idx = line.indexOf(', ');
+    const num = idx > -1 ? line.slice(0, idx).trim() : line.trim();
+    const name = idx > -1 ? line.slice(idx + 2).trim() : '';
+    return { num, name };
+  }).filter(e => e.num);
+}
+
+function parseJSONFile(text) {
+  try {
+    const json = JSON.parse(text);
+    if (Array.isArray(json)) {
+      return json.map(row => {
+        const keys = Object.keys(row);
+        return { num: String(row[keys[0]] || '').trim(), name: String(row[keys[1]] || '').trim() };
+      }).filter(e => e.num);
+    }
+  } catch(_) {}
+  // fallback: CSV-liknande
+  const lines = text.trim().split('\n').slice(1);
+  return lines.map(line => {
+    const parts = line.split(',');
+    if (parts.length < 2) return null;
+    return { num: parts[0].trim(), name: parts[1].trim() };
+  }).filter(e => e && e.num);
+}
+
+// ── CLASSIFY ─────────────────────────────────────────────────────────
+function getType(name) {
+  if (!name) return 'roll';
+  const l = name.toLowerCase();
+  if (l.startsWith('vakant') || l.startsWith('(vakant') || l.includes('vaknat')) return 'vakant';
+  const roles = ['fastighet','teknisk chef','miljöchef','omsorgscontroller','systemförvaltare',
+    'bygg & miljö','bibliotekschef','idrottsanläggning','samhällsbyggnad','möllebacken',
+    'advania','folksam','tele2','idrott och hälsa','korsbacka','övergripande it',
+    'skönadal förskola','skönadalskolan','va-chef','sekretess','bil','används ej'];
+  if (roles.some(r => l.includes(r))) return 'roll';
+  if (/^[A-Z0-9_\-\.]+$/.test(name) && name.length < 10) return 'roll';
+  return 'person';
+}
+
+// ── HIGHLIGHT ─────────────────────────────────────────────────────────
+function hlText(text, q) {
+  if (!q || !text) return text || '';
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────
+function saveToStorage() {
+  try {
+    const raw = entries.map(e => `${e.num}, ${e.name}`).join('\n');
+    localStorage.setItem(STORAGE_KEY, raw);
+    localStorage.setItem(STORAGE_META_KEY, JSON.stringify({ importedAt, filename: importedFile }));
+  } catch(_) {}
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const meta = localStorage.getItem(STORAGE_META_KEY);
+    if (raw) {
+      const parsed = parseEntries(raw);
+      if (parsed.length > 5) entries = parsed;
+    }
+    if (meta) {
+      const m = JSON.parse(meta);
+      importedAt = m.importedAt;
+      importedFile = m.filename;
+    }
+  } catch(_) {}
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────
+function render() {
+  const lq = searchQuery.toLowerCase();
+
+  let list = entries.filter(e => {
+    const type = getType(e.name);
+    if (currentFilter !== 'alla' && type !== currentFilter) return false;
+    if (!lq) return true;
+    return e.num.toLowerCase().includes(lq) || e.name.toLowerCase().includes(lq);
+  });
+
+  list.sort((a, b) => {
+    const va = sortField === 'num' ? a.num : a.name.toLowerCase();
+    const vb = sortField === 'num' ? b.num : b.name.toLowerCase();
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  // Stats
+  const counts = { person: 0, vakant: 0, roll: 0 };
+  entries.forEach(e => { counts[getType(e.name)]++; });
+  document.getElementById('stat-total').textContent = entries.length;
+  document.getElementById('stat-person').textContent = counts.person;
+  document.getElementById('stat-vakant').textContent = counts.vakant;
+  document.getElementById('stat-roll').textContent = counts.roll;
+
+  // Meta
+  const metaEl = document.getElementById('header-meta');
+  if (importedAt) {
+    const d = new Date(importedAt).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' });
+    metaEl.textContent = `Uppdaterad ${d} · ${importedFile}`;
+  } else {
+    metaEl.textContent = '';
+  }
+
+  // Result count
+  document.getElementById('result-info').innerHTML =
+    `Visar <strong>${list.length}</strong> av <strong>${entries.length}</strong> poster` +
+    `<span style="margin-left:12px;color:#cbd5e1">· Dra och släpp en fil var som helst för att importera</span>`;
+
+  // Table
+  const tbody = document.getElementById('tbody');
+  const noRes = document.getElementById('no-results');
+
+  if (list.length === 0) {
+    tbody.innerHTML = '';
+    noRes.style.display = 'block';
+    return;
+  }
+  noRes.style.display = 'none';
+
+  const badgeMap = {
+    person: '<span class="badge badge-person">Person</span>',
+    vakant: '<span class="badge badge-vakant">Vakant</span>',
+    roll:   '<span class="badge badge-roll">Roll/System</span>',
+  };
+
+  tbody.innerHTML = list.map(e => {
+    const type = getType(e.name);
+    const isVakant = type === 'vakant';
+    return `<tr class="${isVakant ? 'vakant-row' : ''}" 
+      onmouseover="this.style.background='#f0f7ff'" 
+      onmouseout="this.style.background='${isVakant ? '#fafafa' : '#fff'}'">
+      <td class="num-col">${hlText(e.num, searchQuery)}</td>
+      <td class="name-col ${isVakant ? 'vakant' : ''}">${hlText(e.name || '—', searchQuery)}</td>
+      <td class="type-col">${badgeMap[type]}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────
+function onSearch() {
+  searchQuery = document.getElementById('search').value;
+  document.getElementById('search-clear').style.display = searchQuery ? 'block' : 'none';
+  render();
+}
+
+function clearSearch() {
+  document.getElementById('search').value = '';
+  searchQuery = '';
+  document.getElementById('search-clear').style.display = 'none';
+  render();
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// ── SORT ──────────────────────────────────────────────────────────────
+function toggleSort(field) {
+  if (sortField === field) {
+    sortAsc = !sortAsc;
+  } else {
+    sortField = field;
+    sortAsc = true;
+  }
+  document.querySelectorAll('.sort-arrow').forEach(el => {
+    el.classList.remove('active');
+    el.textContent = '↕';
+  });
+  const arrow = document.getElementById('arrow-' + field);
+  if (arrow) {
+    arrow.classList.add('active');
+    arrow.textContent = sortAsc ? '↑' : '↓';
+  }
+  render();
+}
+
+// ── IMPORT ────────────────────────────────────────────────────────────
+function onFileChange(e) {
+  const file = e.target.files[0];
+  if (file) handleFile(file);
+  e.target.value = '';
+}
+
+async function handleFile(file) {
+  const text = await file.text();
+  let parsed = [];
+
+  if (file.name.endsWith('.json')) {
+    parsed = parseJSONFile(text);
+  } else {
+    parsed = parseEntries(text);
+  }
+
+  if (parsed.length < 5) {
+    showToast('⚠️ Kunde inte läsa filen — kontrollera formatet', '#dc2626');
+    return;
+  }
+
+  entries = parsed;
+  importedAt = new Date().toISOString();
+  importedFile = file.name;
+  saveToStorage();
+  render();
+  showToast(`✓ ${parsed.length} poster importerade från ${file.name}`, '#15803d');
+}
+
+// ── DRAG & DROP ───────────────────────────────────────────────────────
+let dragCounter = 0;
+document.addEventListener('dragenter', () => {
+  dragCounter++;
+  document.getElementById('drag-overlay').classList.add('active');
+});
+document.addEventListener('dragleave', () => {
+  dragCounter--;
+  if (dragCounter <= 0) {
+    dragCounter = 0;
+    document.getElementById('drag-overlay').classList.remove('active');
+  }
+});
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  dragCounter = 0;
+  document.getElementById('drag-overlay').classList.remove('active');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+loadFromStorage();
+render();
+</script>
+</body>
+</html>
