@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="sv" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cirkulationsmallar — Referenser</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: #f8fafc;
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 24px 20px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0f172a, #1e3a5f);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 32px rgba(15,23,42,0.2);
+  }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+  }
+  .header-title { display: flex; align-items: center; gap: 10px; }
+  .header-title h1 { color: #fff; font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
+  .header-meta { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 3px; }
+  .import-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px; background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25); border-radius: 10px;
+    color: #fff; font-family: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s; white-space: nowrap;
+  }
+  .import-btn:hover { background: rgba(255,255,255,0.22); }
+
+  /* Stats */
+  .stats-row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-val { font-size: 20px; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* Search */
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+  .search-input {
+    width: 100%; padding: 12px 40px 12px 44px;
+    border: 2px solid #e2e8f0; border-radius: 10px;
+    font-size: 14px; font-family: inherit; background: #fff;
+    outline: none; transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: #1e3a5f; }
+  .search-clear {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    border: none; background: none; cursor: pointer; font-size: 20px; color: #94a3b8; line-height: 1; display: none;
+  }
+
+  /* Filters */
+  .filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 8px 15px; border-radius: 8px; border: 2px solid #e2e8f0;
+    background: #fff; color: #64748b; font-family: inherit;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .filter-btn.active { border-color: #1e3a5f; background: #1e3a5f; color: #fff; }
+  .filter-btn.warn.active { border-color: #b45309; background: #b45309; }
+
+  /* Result count */
+  .result-info { font-size: 12px; color: #94a3b8; margin-bottom: 10px; padding-left: 2px; }
+  .result-info strong { color: #1e3a5f; }
+  .result-info .hint { margin-left: 12px; color: #cbd5e1; }
+
+  /* Table */
+  .table-wrap { background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #0f172a; }
+  thead th {
+    padding: 13px 18px; text-align: left; color: #e2e8f0;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; user-select: none;
+  }
+  thead th.no-sort { cursor: default; }
+  thead th:hover:not(.no-sort) { background: #1e3a5f; }
+  .sort-arrow { margin-left: 4px; opacity: 0.35; font-size: 11px; }
+  .sort-arrow.active { opacity: 1; }
+  tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+  tbody tr:hover { background: #f0f7ff !important; }
+  tbody tr.row-tveksam { background: #fffbeb; }
+  tbody tr.row-sparrad { background: #fef2f2; }
+  td { padding: 11px 18px; font-size: 14px; vertical-align: top; }
+  td.num-col { font-family: 'Courier New', monospace; font-size: 13px; color: #1e3a5f; font-weight: 700; width: 110px; white-space: nowrap; }
+  td.desc-col { color: #1e293b; width: 210px; }
+  td.desc-col.tom { color: #cbd5e1; font-style: italic; }
+
+  /* Recipients / chain */
+  .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; }
+  .rcpt { display: inline-flex; align-items: center; gap: 4px; }
+  .rcpt.sparrad { color: #dc2626; }
+  .rcpt.saknas  { color: #b45309; font-style: italic; }
+  .rcpt.ingen_epost { color: #b45309; }
+  .chain-arrow { color: #94a3b8; font-weight: 700; margin: 0 2px; }
+  .lock-ico { font-size: 11px; }
+  .emails { display: flex; flex-direction: column; gap: 2px; }
+  .emails a { color: #1d4ed8; text-decoration: none; font-size: 13px; }
+  .emails a:hover { text-decoration: underline; }
+  .email-missing { color: #cbd5e1; }
+
+  .badge {
+    display: inline-block; padding: 2px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap;
+  }
+  .badge-aktiv   { background: #dcfce7; color: #15803d; }
+  .badge-sparrad { background: #fee2e2; color: #dc2626; }
+  .badge-saknas  { background: #fef3c7; color: #b45309; }
+  .badge-epost   { background: #fef3c7; color: #b45309; }
+  .badge-chain   { background: #e0e7ff; color: #4338ca; margin-left: 6px; }
+  mark { background: #fde68a; border-radius: 2px; padding: 0 1px; }
+  .no-results { text-align: center; padding: 48px; color: #94a3b8; font-size: 15px; }
+  .no-results .icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* SQL-ruta */
+  .sql-box {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    margin-bottom: 14px; overflow: hidden;
+  }
+  .sql-box summary {
+    cursor: pointer; padding: 12px 18px; font-size: 13px; font-weight: 700;
+    color: #1e3a5f; list-style: none; user-select: none;
+  }
+  .sql-box summary::-webkit-details-marker { display: none; }
+  .sql-box summary span { color: #94a3b8; font-weight: 400; }
+  .sql-box[open] summary { border-bottom: 1px solid #f1f5f9; }
+  .sql-inner { padding: 14px 18px 18px; }
+  .sql-how { font-size: 13px; color: #475569; line-height: 1.6; margin-bottom: 12px; }
+  .sql-how code { background: #f1f5f9; color: #1e3a5f; padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+  .copy-btn {
+    padding: 7px 14px; background: #1e3a5f; color: #fff; border: none;
+    border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; margin-bottom: 12px;
+  }
+  .copy-btn:hover { background: #0f172a; }
+  .sql-box pre {
+    background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 12.5px;
+    line-height: 1.55; white-space: pre;
+  }
+
+  /* Drag overlay */
+  #drag-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(30,58,95,0.85); z-index: 999;
+    align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+  }
+  #drag-overlay.active { display: flex; }
+  #drag-overlay .drop-icon { font-size: 56px; }
+  #drag-overlay p { color: #fff; font-size: 20px; font-weight: 700; }
+
+  /* Toast */
+  #toast {
+    display: none; position: fixed; bottom: 24px; right: 24px;
+    padding: 12px 20px; border-radius: 10px; color: #fff;
+    font-size: 14px; font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 1000; font-family: inherit;
+  }
+</style>
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">NAQPJTHRR6SY-2073631026-1545224</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">dec6809a-32dc-4755-8049-b157ea94c441</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://skakom.sharepoint.com/sites/Kavlingesgemensammafiler/_layouts/15/DocIdRedir.aspx?ID=NAQPJTHRR6SY-2073631026-1545224, NAQPJTHRR6SY-2073631026-1545224</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+
+<div id="drag-overlay">
+  <div class="drop-icon">📂</div>
+  <p>Släpp JSON-filen här för att uppdatera</p>
+</div>
+
+<div id="toast"></div>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">
+        <span style="font-size:24px">📋</span>
+        <h1>Cirkulationsmallar — Referenser</h1>
+      </div>
+      <div class="header-meta" id="header-meta"></div>
+    </div>
+    <button class="import-btn" onclick="document.getElementById('file-input').click()">
+      ⬆ Importera ny fil
+    </button>
+    <input id="file-input" type="file" accept=".json" style="display:none" onchange="onFileChange(event)">
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val" id="stat-mallar"    style="color:#e2e8f0">0</div><div class="stat-label">Mallar</div></div>
+    <div class="stat"><div class="stat-val" id="stat-aktiva"    style="color:#4ade80">0</div><div class="stat-label">Aktiva</div></div>
+    <div class="stat"><div class="stat-val" id="stat-tveksamma" style="color:#f59e0b">0</div><div class="stat-label">⚠ Tveksamma</div></div>
+    <div class="stat"><div class="stat-val" id="stat-kedjor"    style="color:#818cf8">0</div><div class="stat-label">Kedjor</div></div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input class="search-input" id="search" type="text" placeholder="Sök på nummer, beskrivning, namn eller e-post…" oninput="onSearch()">
+  <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" data-f="alla"      onclick="setFilter('alla', this)">Alla</button>
+  <button class="filter-btn"        data-f="aktiva"    onclick="setFilter('aktiva', this)">✓ Aktiva</button>
+  <button class="filter-btn warn"   data-f="tveksamma" onclick="setFilter('tveksamma', this)">⚠ Tveksamma</button>
+  <button class="filter-btn"        data-f="kedjor"    onclick="setFilter('kedjor', this)">🔗 Kedjor</button>
+</div>
+
+<div class="result-info" id="result-info"></div>
+
+<details class="sql-box">
+  <summary>⚙ SQL för uppdatering — <span>körs återkommande mot ftg100</span></summary>
+  <div class="sql-inner">
+    <p class="sql-how">
+      Kör mot <code>svraindance02/Udp</code> → spara JSON-resultatet som
+      <code>cmail_data.json</code> bredvid denna sida → committa till GitHub Pages.
+      Katalogen läser filen automatiskt vid sidladdning. Passar bra som ett schemalagt
+      agentjobb (t.ex. en gång i veckan).
+    </p>
+    <button class="copy-btn" onclick="copySQL()">📋 Kopiera SQL</button>
+    <pre id="sql-text"></pre>
+  </div>
+</details>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="setSort('mall')">Nummer <span class="sort-arrow" data-k="mall">↕</span></th>
+        <th onclick="setSort('beskrivning')">Beskrivning <span class="sort-arrow" data-k="beskrivning">↕</span></th>
+        <th class="no-sort">Mottagare</th>
+        <th class="no-sort">E-post</th>
+        <th onclick="setSort('status')">Status <span class="sort-arrow" data-k="status">↕</span></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<script>
+// ── INBAKAD DATA (ftg100.CIRKULATIONSMALL × ftg100.ANV) ───────────────
+// (Ingen inbakad reserv — data hämtas från cmail_data.json bredvid sidan.)
+
+const STORAGE_KEY = 'cirkmall-data-v2';
+const STORAGE_META = 'cirkmall-meta-v2';
+
+// Joinen som producerar cmail_data.json. Kör mot svraindance02/Udp, spara
+// JSON-cellen som cmail_data.json bredvid denna sida, committa till GitHub Pages.
+const REFRESH_SQL = `SELECT
+    LTRIM(RTRIM(c.CIRKMALLSID))                                          AS mall,
+    c.CIRKORDNING                                                        AS ordning,
+    ISNULL(LTRIM(RTRIM(c.BESKRIVNING)), '')                              AS beskrivning,
+    CASE WHEN LOWER(LTRIM(RTRIM(c.SERIELL))) = 'ja' THEN 1 ELSE 0 END    AS seriell,
+    LTRIM(RTRIM(c.ANVÄNDARE))                                            AS [sign],
+    LTRIM(RTRIM(c.ANVÄNDARE2))                                           AS altsign,
+    COALESCE(NULLIF(LTRIM(RTRIM(a.NAMN)), ''), LTRIM(RTRIM(c.ANV_NAMN))) AS namn,
+    ISNULL(LTRIM(RTRIM(a.EMAIL)), '')                                    AS epost,
+    ISNULL(LTRIM(RTRIM(a.SPÄRR)), '')                                    AS sparr,
+    ISNULL(LTRIM(RTRIM(a.SPÄRRTYP)), '')                                 AS sparrtyp
+FROM ftg100.CIRKULATIONSMALL c
+LEFT JOIN ftg100.ANV a
+       ON LTRIM(RTRIM(c.ANVÄNDARE2)) = LTRIM(RTRIM(a.ALTSIGN))
+      AND LTRIM(RTRIM(c.ANVÄNDARE2)) <> ''   -- tomma nycklar får ej matcha varandra
+ORDER BY c.CIRKMALLSID, c.CIRKORDNING
+FOR JSON PATH;`;
+
+function copySQL() {
+  navigator.clipboard.writeText(REFRESH_SQL)
+    .then(() => showToast('✓ SQL kopierad', '#15803d'))
+    .catch(() => showToast('Kunde inte kopiera — markera texten manuellt', '#dc2626'));
+}
+
+let mallar = [];
+let importedAt = null;
+let importedFile = null;
+
+let state = { filter: 'alla', q: '', sortKey: 'mall', sortDir: 1 };
+
+const STATUS_META = {
+  aktiv:       { label: 'Aktiv',        cls: 'badge-aktiv',   rank: 0 },
+  ingen_epost: { label: 'Saknar e-post',cls: 'badge-epost',   rank: 1 },
+  saknas:      { label: 'Saknar konto', cls: 'badge-saknas',  rank: 2 },
+  sparrad:     { label: 'Spärrad',      cls: 'badge-sparrad', rank: 3 }
+};
+
+// ── STATISTIK (räknas alltid om från datan) ───────────────────────────
+function computeStats(list) {
+  return {
+    mallar: list.length,
+    aktiva: list.filter(m => m.status === 'aktiv').length,
+    tveksamma: list.filter(m => m.tveksam).length,
+    kedjor: list.filter(m => m.kedja).length
+  };
+}
+
+// ── SÖK/FILTER/SORT ───────────────────────────────────────────────────
+function matchesQuery(m, q) {
+  if (!q) return true;
+  const hay = [m.mall, m.beskrivning,
+    ...m.mottagare.map(r => r.namn),
+    ...m.mottagare.map(r => r.epost),
+    ...m.mottagare.map(r => r.sign),
+    ...m.mottagare.map(r => r.altsign)
+  ].join(' ').toLowerCase();
+  return hay.includes(q);
+}
+function matchesFilter(m, f) {
+  if (f === 'alla') return true;
+  if (f === 'aktiva') return m.status === 'aktiv';
+  if (f === 'tveksamma') return m.tveksam;
+  if (f === 'kedjor') return m.kedja;
+  return true;
+}
+function sortList(list) {
+  const k = state.sortKey, dir = state.sortDir;
+  return list.slice().sort((a, b) => {
+    let av, bv;
+    if (k === 'status') { av = STATUS_META[a.status].rank; bv = STATUS_META[b.status].rank; }
+    else { av = (a[k] || '').toString().toLowerCase(); bv = (b[k] || '').toString().toLowerCase(); }
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return a.mall.localeCompare(b.mall);
+  });
+}
+
+// ── HIGHLIGHT ─────────────────────────────────────────────────────────
+function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function hl(text, q) {
+  const t = esc(text);
+  if (!q) return t;
+  const e = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return t.replace(new RegExp(`(${e})`, 'gi'), '<mark>$1</mark>');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────
+function render() {
+  if (!mallar.length) { renderEmpty(); return; }
+  const q = state.q.trim().toLowerCase();
+  let list = mallar.filter(m => matchesFilter(m, state.filter) && matchesQuery(m, q));
+  list = sortList(list);
+
+  const tbody = document.getElementById('tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="no-results"><div class="icon">🔍</div>Inga mallar matchar</div></td></tr>`;
+  } else {
+    tbody.innerHTML = list.map(m => {
+      const rowCls = m.status === 'sparrad' ? 'row-sparrad' : (m.tveksam ? 'row-tveksam' : '');
+
+      // Mottagarkedja
+      const chain = m.mottagare.map(r => {
+        const lock = r.status === 'sparrad' ? '<span class="lock-ico">🔒</span>' : '';
+        const nm = r.namn ? hl(r.namn, q) : '<span class="saknas">okänd mottagare</span>';
+        return `<span class="rcpt ${r.status}">${lock}${nm}</span>`;
+      }).join('<span class="chain-arrow">→</span>');
+      const chainBadge = m.kedja ? `<span class="badge badge-chain">🔗 ${m.mottagare.length}</span>` : '';
+
+      // E-post (unika, i ordning)
+      const seen = new Set();
+      const emails = m.mottagare.map(r => r.epost).filter(e => e && !seen.has(e) && seen.add(e));
+      const emailHtml = emails.length
+        ? `<div class="emails">${emails.map(e => `<a href="mailto:${esc(e)}">${hl(e, q)}</a>`).join('')}</div>`
+        : `<span class="email-missing">—</span>`;
+
+      const sm = STATUS_META[m.status];
+      const beskr = m.beskrivning
+        ? `<td class="desc-col">${hl(m.beskrivning, q)}</td>`
+        : `<td class="desc-col tom">—</td>`;
+
+      return `<tr class="${rowCls}">
+        <td class="num-col">${hl(m.mall, q)}</td>
+        ${beskr}
+        <td><div class="chain">${chain}${chainBadge}</div></td>
+        <td>${emailHtml}</td>
+        <td><span class="badge ${sm.cls}">${sm.label}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('result-info').innerHTML =
+    `Visar <strong>${list.length}</strong> av <strong>${mallar.length}</strong> mallar` +
+    `<span class="hint">· Dra och släpp en JSON-fil var som helst för att uppdatera</span>`;
+
+  // sort-pilar
+  document.querySelectorAll('.sort-arrow').forEach(a => {
+    if (a.dataset.k === state.sortKey) { a.classList.add('active'); a.textContent = state.sortDir === 1 ? '↑' : '↓'; }
+    else { a.classList.remove('active'); a.textContent = '↕'; }
+  });
+}
+
+function renderEmpty() {
+  const msg = loadError || 'Ingen UDP-data hittad.';
+  document.getElementById('tbody').innerHTML =
+    `<tr><td colspan="5"><div class="no-results">
+       <div class="icon">🗄️</div>
+       <div style="font-weight:700;color:#475569;margin-bottom:6px">Ingen UDP-data hittad</div>
+       <div style="font-size:13px;max-width:520px;margin:0 auto 14px;line-height:1.6">${esc(msg)}</div>
+       <button class="import-btn" style="background:#1e3a5f;border-color:#1e3a5f;margin:0 auto"
+               onclick="document.getElementById('file-input').click()">⬆ Importera cmail_data.json manuellt</button>
+     </div></td></tr>`;
+  document.getElementById('result-info').innerHTML =
+    `<strong>Väntar på data</strong> · katalogen läser <code>cmail_data.json</code> bredvid sidan vid varje laddning`;
+}
+
+function renderStats() {
+  const s = computeStats(mallar);
+  document.getElementById('stat-mallar').textContent = s.mallar;
+  document.getElementById('stat-aktiva').textContent = s.aktiva;
+  document.getElementById('stat-tveksamma').textContent = s.tveksamma;
+  document.getElementById('stat-kedjor').textContent = s.kedjor;
+  const d = importedAt ? new Date(importedAt).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+  document.getElementById('header-meta').textContent = importedFile ? `Uppdaterad ${d} · ${importedFile}` : 'Ingen data laddad';
+}
+
+// ── UI-HÄNDELSER ──────────────────────────────────────────────────────
+function onSearch() {
+  state.q = document.getElementById('search').value;
+  document.getElementById('search-clear').style.display = state.q ? 'block' : 'none';
+  render();
+}
+function clearSearch() {
+  document.getElementById('search').value = '';
+  state.q = '';
+  document.getElementById('search-clear').style.display = 'none';
+  render();
+}
+function setFilter(f, btn) {
+  state.filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+function setSort(k) {
+  if (state.sortKey === k) state.sortDir *= -1;
+  else { state.sortKey = k; state.sortDir = 1; }
+  render();
+}
+
+// ── PERSISTENS ────────────────────────────────────────────────────────
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(mallar));
+    localStorage.setItem(STORAGE_META, JSON.stringify({ importedAt, importedFile }));
+  } catch (_) {}
+}
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) {
+        mallar = parsed;
+        const m = JSON.parse(localStorage.getItem(STORAGE_META) || '{}');
+        importedAt = m.importedAt || importedAt;
+        importedFile = m.importedFile || importedFile;
+      }
+    }
+  } catch (_) {}
+}
+
+// ── FILLÄSNING (BOM- och UTF-16-medveten, delas av fetch och import) ──
+function decodeBytes(buf) {
+  if (buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE) return new TextDecoder('utf-16le').decode(buf.subarray(2));
+  if (buf.length >= 2 && buf[0] === 0xFE && buf[1] === 0xFF) return new TextDecoder('utf-16be').decode(buf.subarray(2));
+  if (buf.length >= 3 && buf[0] === 0xEF && buf[1] === 0xBB && buf[2] === 0xBF) return new TextDecoder('utf-8').decode(buf.subarray(3));
+  let nulls = 0, n = Math.min(buf.length, 1000);
+  for (let i = 0; i < n; i++) if (buf[i] === 0) nulls++;
+  if (nulls > n * 0.2) return new TextDecoder('utf-16le').decode(buf);
+  return new TextDecoder('utf-8').decode(buf);
+}
+async function readFileSmart(file) {
+  return decodeBytes(new Uint8Array(await file.arrayBuffer()));
+}
+
+// ── IMPORT ────────────────────────────────────────────────────────────
+// Katalogen tar emot TVÅ format:
+//   1) Platta rader (SQL FOR JSON-utdata) — en rad per mottagare. Grupperas här.
+//   2) Aggregerat — en post per mall med en mottagare-array (samma form som inbakat).
+const RANK = { aktiv: 0, ingen_epost: 1, saknas: 2, sparrad: 3 };
+
+function recStatusFromRaw(sparr, epost) {
+  const sp = String(sparr || '').toUpperCase();
+  const matched = sp === 'N' || sp === 'J';
+  if (sp === 'J') return 'sparrad';
+  if (!matched)   return 'saknas';        // ingen kopplad ANV-post
+  if (!epost)     return 'ingen_epost';
+  return 'aktiv';
+}
+
+function isFlat(list) {
+  const r = list.find(x => x && typeof x === 'object');
+  return !!r && r.mottagare === undefined && ('sparr' in r || 'namn' in r || 'ordning' in r);
+}
+
+function groupFlat(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const mall = String(row.mall || '').trim();
+    if (!mall) continue;
+    if (!map.has(mall)) map.set(mall, { mall, beskrivning: row.beskrivning || '', seriell: !!row.seriell, mottagare: [] });
+    const sp = String(row.sparr || '').toUpperCase();
+    map.get(mall).mottagare.push({
+      ordning: row.ordning ?? 0, namn: row.namn || '', epost: row.epost || '',
+      sign: row.sign || '', altsign: row.altsign || '',
+      sparrtyp: sp === 'J' ? (row.sparrtyp || '') : '',
+      status: recStatusFromRaw(row.sparr, row.epost)
+    });
+  }
+  return finalize([...map.values()]);
+}
+
+function finalize(list) {
+  const out = list.map(m => {
+    const rcpts = m.mottagare || [];
+    rcpts.sort((a, b) => (a.ordning || 0) - (b.ordning || 0));
+    const worst = rcpts.length ? rcpts.reduce((w, r) => RANK[r.status] > RANK[w] ? r.status : w, 'aktiv') : 'saknas';
+    return {
+      mall: String(m.mall || '').trim(),
+      beskrivning: m.beskrivning || '',
+      seriell: !!m.seriell,
+      mottagare: rcpts,
+      status: m.status || worst,
+      tveksam: m.tveksam ?? (worst !== 'aktiv'),
+      kedja: m.kedja ?? (rcpts.length > 1)
+    };
+  }).filter(m => m.mall);
+  out.sort((a, b) => a.mall.localeCompare(b.mall));
+  return out;
+}
+
+function normalize(list) {
+  if (!Array.isArray(list)) return [];
+  return isFlat(list)
+    ? groupFlat(list)
+    : finalize(list.map(m => ({
+        ...m,
+        mottagare: (m.mottagare || []).map(r => ({
+          ordning: r.ordning ?? 0, namn: r.namn || '', epost: r.epost || '',
+          sign: r.sign || '', altsign: r.altsign || '', sparrtyp: r.sparrtyp || '',
+          status: r.status || recStatusFromRaw(r.sparr, r.epost)
+        }))
+      })));
+}
+
+function extractList(json) {
+  if (Array.isArray(json)) return json;
+  if (json && Array.isArray(json.mallar)) return json.mallar;
+  if (json && Array.isArray(json.rows)) return json.rows;
+  return null;
+}
+
+async function handleFile(file) {
+  let text;
+  try { text = await readFileSmart(file); }
+  catch (_) { showToast('⚠️ Kunde inte läsa filen', '#dc2626'); return; }
+
+  let list = null;
+  try {
+    const json = JSON.parse(text);
+    list = extractList(json);
+    if (json && !Array.isArray(json) && json.genererad) importedAt = json.genererad;
+  } catch (_) {
+    showToast('⚠️ Filen är inte giltig JSON — förväntar formatet från cmail_data.json', '#dc2626');
+    return;
+  }
+
+  const norm = normalize(list || []);
+  if (norm.length < 1) { showToast('⚠️ Hittade inga mallar i filen', '#dc2626'); return; }
+
+  mallar = norm;
+  if (!importedAt) importedAt = new Date().toISOString();
+  importedFile = file.name;
+  saveToStorage();
+  renderStats();
+  render();
+  showToast(`✓ ${norm.length} mallar uppdaterade från ${file.name}`, '#15803d');
+}
+
+function onFileChange(e) {
+  const f = e.target.files[0];
+  if (f) handleFile(f);
+  e.target.value = '';
+}
+
+// ── DRAG & DROP ───────────────────────────────────────────────────────
+let dragCounter = 0;
+document.addEventListener('dragenter', () => { dragCounter++; document.getElementById('drag-overlay').classList.add('active'); });
+document.addEventListener('dragleave', () => { dragCounter--; if (dragCounter <= 0) { dragCounter = 0; document.getElementById('drag-overlay').classList.remove('active'); } });
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault(); dragCounter = 0;
+  document.getElementById('drag-overlay').classList.remove('active');
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = color; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+// Prioritet: färsk cmail_data.json (bredvid sidan) > senaste manuella import.
+// Ingen inbakad reserv — hittas ingen live-data visas en tydlig ruta.
+let loadError = '';
+
+async function init() {
+  document.getElementById('sql-text').textContent = REFRESH_SQL;
+  let loaded = false;
+  try {
+    const res = await fetch('cmail_data.json', { cache: 'no-store' });
+    if (res.ok) {
+      const text = decodeBytes(new Uint8Array(await res.arrayBuffer())); // BOM/UTF-16-säker
+      const json = JSON.parse(text);
+      const norm = normalize(extractList(json) || []);
+      if (norm.length) {
+        mallar = norm;
+        importedAt = (json && !Array.isArray(json) && json.genererad) ? json.genererad : new Date().toISOString();
+        importedFile = 'cmail_data.json';
+        loaded = true;
+        saveToStorage();
+      } else {
+        loadError = 'cmail_data.json hittades men innehöll inga mallar.';
+      }
+    } else {
+      loadError = `cmail_data.json kunde inte hämtas (HTTP ${res.status}).`;
+    }
+  } catch (e) {
+    // file:// blockerar fetch, eller trasig JSON
+    loadError = (location.protocol === 'file:')
+      ? 'Sidan öppnades som lokal fil — webbläsaren blockerar läsning av cmail_data.json. Publicera på GitHub Pages, eller dra in JSON-filen nedan.'
+      : 'cmail_data.json kunde inte läsas (' + (e.message || 'okänt fel') + ').';
+  }
+
+  if (!loaded) {
+    loadFromStorage();          // ev. tidigare manuell import
+    mallar = normalize(mallar);
+  }
+  renderStats();
+  render();
+}
+init();
+</script>
+</body>
+</html>
